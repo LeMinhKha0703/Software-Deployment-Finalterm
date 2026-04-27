@@ -13,7 +13,7 @@ services:
           - node.role == manager
 
   techgear_web:
-    image: $thanhtrong918/node-app:latest
+    image: thanhtrong918/node-app:latest
     ports:
       - "3000:3000"
     environment:
