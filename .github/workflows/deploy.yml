@@ -2,7 +2,7 @@ name: CI/CD Pipeline for TechGear
 
 on:
   push:
-    branches: [ "main" ] # Tự động chạy khi bạn push code lên nhánh main
+    branches: [ "main" ]
 
 jobs:
   build-and-push:
@@ -10,6 +10,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -22,8 +30,17 @@ jobs:
         with:
           context: .
           push: true
-          # Gắn tag image theo tên tài khoản của bạn
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/node-app:latest
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/node-app:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
 
   deploy:
     needs: build-and-push
@@ -32,7 +49,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Copy file stack lên server AWS Manager trước khi deploy
       - name: Copy stack file to server
         uses: appleboy/scp-action@master
         with:
@@ -49,7 +65,5 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            # Đăng nhập Docker trên AWS để kéo image private (nếu có)
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-            # Triển khai hoặc cập nhật ứng dụng
             docker stack deploy -c /home/ubuntu/docker-stack.yml techgear --with-registry-auth
