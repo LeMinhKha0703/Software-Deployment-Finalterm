@@ -1,18 +1,33 @@
 version: '3.8'
+
 services:
-  web:
-    image: thanhtrong918/node-app:latest # Chúng ta sẽ build cái này ở bước CI/CD
+  db:
+    image: mongo:latest
+    networks:
+      - app_network
+    volumes:
+      - mongodb_data:/data/db
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  techgear_web:
+    image: ${DOCKERHUB_USERNAME}/node-app:latest
     ports:
       - "3000:3000"
+    environment:
+      MONGO_URI: mongodb://db:27017/products_db
+    networks:
+      - app_network
     deploy:
-      replicas: 3 # Chạy 3 bản sao để đảm bảo tính sẵn sàng cao
-      update_config:
-        parallelism: 2
-        delay: 10s
+      replicas: 2
       restart_policy:
         condition: on-failure
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+
+networks:
+  app_network:
+    driver: overlay
+
+volumes:
+  mongodb_data:
