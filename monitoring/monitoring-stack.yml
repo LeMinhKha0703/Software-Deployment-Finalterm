@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - /home/ubuntu/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - techgear_app_network # Dùng chung network với app TechGear
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    networks:
+      - techgear_app_network
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+networks:
+  techgear_app_network:
+    external: true

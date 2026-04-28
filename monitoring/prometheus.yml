@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'techgear_app'
+    dns_sd_configs:
+      - names: ['tasks.techgear_web'] 
+        type: 'A'
+        port: 3000
