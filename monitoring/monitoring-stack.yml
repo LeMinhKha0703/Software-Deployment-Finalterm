@@ -7,6 +7,7 @@ services:
       - "9090:9090"
     volumes:
       - /home/ubuntu/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - /home/ubuntu/monitoring/prometheus_data:/prometheus
     networks:
       - techgear_app_network
     deploy:
@@ -17,6 +18,8 @@ services:
     image: grafana/grafana:latest
     ports:
       - "3001:3000"
+    volumes:
+      - /home/ubuntu/monitoring/grafana_data:/var/lib/grafana
     networks:
       - techgear_app_network
     deploy:
