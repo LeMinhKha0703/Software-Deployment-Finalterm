@@ -8,7 +8,7 @@ services:
     volumes:
       - /home/ubuntu/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
-      - techgear_app_network # Dùng chung network với app TechGear
+      - techgear_app_network
     deploy:
       placement:
         constraints: [node.role == manager]
@@ -22,6 +22,22 @@ services:
     deploy:
       placement:
         constraints: [node.role == manager]
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - techgear_app_network
+    deploy:
+      mode: global
 
 networks:
   techgear_app_network:
