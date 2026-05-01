@@ -55,7 +55,6 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          # Copy cả app stack và proxy stack
           source: "docker-stack.yml,proxy-stack.yml"
           target: "/home/ubuntu/"
 
@@ -66,18 +65,28 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            # Triển khai Proxy đầu tiên để mở cổng chào
             docker stack deploy -c /home/ubuntu/proxy-stack.yml proxy
 
       - name: Deploy to Docker Swarm (App)
         uses: appleboy/ssh-action@master
+        env:
+          S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+            
+            export S3_BUCKET_NAME=$S3_BUCKET_NAME
+            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            
             docker stack deploy -c /home/ubuntu/docker-stack.yml techgear --with-registry-auth
+            
+            docker service update --force techgear_techgear_web
 
       - name: Copy monitoring config to server
         uses: appleboy/scp-action@master
