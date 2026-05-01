@@ -1,4 +1,3 @@
-# proxy-stack.yml
 version: '3.8'
 services:
   app:
@@ -10,6 +9,12 @@ services:
     volumes:
       - /home/ubuntu/data:/data
       - /home/ubuntu/letsencrypt:/etc/letsencrypt
+    networks:
+      - techgear_app_network 
     deploy:
       placement:
         constraints: [node.role == manager]
+
+networks:
+  techgear_app_network: 
+    external: true
