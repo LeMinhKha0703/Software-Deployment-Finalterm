@@ -1,9 +1,9 @@
 ---
-- name: Install Docker on all nodes
+- name: Cấu hình toàn bộ hạ tầng Swarm Cluster
   hosts: all
-  become: yes # Chạy với quyền sudo
+  become: yes
   tasks:
-    - name: Update apt and install dependencies
+    - name: 1. Cài đặt các gói phụ thuộc (Dependencies)
       apt:
         update_cache: yes
         name:
@@ -11,20 +11,22 @@
           - ca-certificates
           - curl
           - software-properties-common
+          - gnupg
         state: present
 
-    - name: Add Docker GPG key
+    - name: 2. Thêm Docker GPG key
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
 
-    - name: Add Docker Repository
+    - name: 3. Thêm Docker Repository chính thức
       apt_repository:
         repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable
         state: present
 
-    - name: Install Docker Engine
+    - name: 4. Cài đặt Docker Engine (Bản Community Edition)
       apt:
+        update_cache: yes
         name:
           - docker-ce
           - docker-ce-cli
@@ -32,14 +34,47 @@
           - docker-compose-plugin
         state: present
 
-    - name: Ensure Docker is started and enabled
+    - name: 5. Đảm bảo Docker đã khởi chạy
       systemd:
         name: docker
         state: started
         enabled: yes
 
-    - name: Add ubuntu user to docker group
+    - name: 6. Thêm user ubuntu vào group docker
       user:
         name: ubuntu
         groups: docker
         append: yes
+
+    - name: 7. Tạo các thư mục lưu trữ dữ liệu (Persistence)
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0777'
+      with_items:
+        - /home/ubuntu/monitoring/prometheus_data
+        - /home/ubuntu/monitoring/grafana_data
+        - /home/ubuntu/app_uploads
+
+- name: Khởi tạo Docker Swarm (Chỉ chạy trên Manager)
+  hosts: manager
+  become: yes
+  tasks:
+    - name: Init Swarm
+      shell: docker swarm init --advertise-addr {{ ansible_host }}
+      register: swarm_init
+      ignore_errors: yes
+
+    - name: Lấy mã Join Token cho Worker
+      shell: docker swarm join-token -q worker
+      register: worker_token
+
+- name: Kết nối máy chủ Worker vào cụm Swarm
+  hosts: worker
+  become: yes
+  tasks:
+    - name: Thực hiện Join vào cụm
+      shell: "docker swarm join --token {{ hostvars[groups['manager'][0]]['worker_token']['stdout'] }} {{ hostvars[groups['manager'][0]]['ansible_host'] }}:2377"
+      ignore_errors: yes
