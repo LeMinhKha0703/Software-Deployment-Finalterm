@@ -17,11 +17,12 @@ services:
     ports:
       - "3000:3000"
     environment:
-      MONGO_URI: mongodb://db:27017/products_db
-      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      AWS_REGION: ap-southeast-1
+      - MONGO_URI=mongodb://db:27017/products_db
+      - PORT=3000
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=ap-southeast-1
     networks:
       - app_network
     deploy:
