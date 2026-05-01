@@ -178,6 +178,8 @@ resource "aws_s3_bucket_public_access_block" "allow_public" {
 resource "aws_s3_bucket_policy" "public_read" {
   bucket = aws_s3_bucket.images.id
 
+  depends_on = [aws_s3_bucket_public_access_block.allow_public]
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [

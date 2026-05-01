@@ -49,16 +49,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Copy stack file to server
+      - name: Copy all stack files to server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          source: "docker-stack.yml"
+          # Copy cả app stack và proxy stack
+          source: "docker-stack.yml,proxy-stack.yml"
           target: "/home/ubuntu/"
 
-      - name: Deploy to Docker Swarm
+      - name: Deploy Proxy Infrastructure
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            # Triển khai Proxy đầu tiên để mở cổng chào
+            docker stack deploy -c /home/ubuntu/proxy-stack.yml proxy
+
+      - name: Deploy to Docker Swarm (App)
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
