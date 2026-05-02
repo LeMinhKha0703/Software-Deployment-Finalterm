@@ -52,7 +52,7 @@ async function start() {
     await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 3000,
+      serverSelectionTimeoutMS: 10000,
       bufferCommands: false
     });
     usingMongo = true;
