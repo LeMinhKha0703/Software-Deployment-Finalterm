@@ -1,9 +1,7 @@
-# 1. Khai báo nhà cung cấp
 provider "aws" {
   region = "ap-southeast-1"
 }
 
-# 2. Tự động tìm AMI Ubuntu 22.04
 data "aws_ami" "ubuntu" {
   most_recent = true
   owners      = ["099720109477"]
@@ -21,7 +19,6 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-# 3. Tạo Security Group (Tường lửa)
 resource "aws_security_group" "swarm_sg" {
   name        = "swarm-security-group-v2"
   description = "Allow SSH, Web, and Swarm traffic"
@@ -96,6 +93,13 @@ resource "aws_security_group" "swarm_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    self      = true
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -104,7 +108,6 @@ resource "aws_security_group" "swarm_sg" {
   }
 }
 
-# 4. Tạo máy chủ Manager
 resource "aws_instance" "manager" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t3.small"
@@ -125,7 +128,6 @@ resource "aws_instance" "manager" {
   }
 }
 
-# 5. Tạo máy chủ Worker
 resource "aws_instance" "worker" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t3.small"
@@ -146,7 +148,6 @@ resource "aws_instance" "worker" {
   }
 }
 
-# --- PHẦN GẮN ELASTIC IP CỐ ĐỊNH ---
 resource "aws_eip_association" "manager_assoc" {
   instance_id   = aws_instance.manager.id
   allocation_id = "eipalloc-0608ecae2d86fa1eb"
@@ -157,7 +158,6 @@ resource "aws_eip_association" "worker_assoc" {
   allocation_id = "eipalloc-01c15eebe845d0ac3"
 }
 
-# --- PHẦN BỔ SUNG CHO S3 ---
 resource "random_id" "bucket_suffix" {
   byte_length = 4
 }
@@ -220,7 +220,6 @@ resource "aws_iam_user_policy" "s3_full_access" {
   })
 }
 
-# 6. Xuất thông tin
 output "manager_ip" {
   value = "13.251.252.249"
 }
