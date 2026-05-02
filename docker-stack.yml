@@ -8,6 +8,7 @@ services:
     volumes:
       - mongodb_data:/data/db
     deploy:
+      endpoint_mode: dnsrr
       placement:
         constraints:
           - node.role == manager
