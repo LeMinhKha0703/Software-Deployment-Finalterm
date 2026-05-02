@@ -7,7 +7,6 @@ const multer = require('multer');
 const { S3Client } = require('@aws-sdk/client-s3');
 const multerS3 = require('multer-s3');
 
-// Cấu hình AWS S3 Client (v3)
 const s3 = new S3Client({
   region: process.env.AWS_REGION || 'ap-southeast-1',
   credentials: {
@@ -16,12 +15,10 @@ const s3 = new S3Client({
   }
 });
 
-// Cấu hình Multer-S3
 const upload = multer({
   storage: multerS3({
     s3: s3,
     bucket: process.env.S3_BUCKET_NAME,
-    acl: 'public-read',
     key: function (req, file, cb) {
       const safe = Date.now() + '-' + file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '_');
       cb(null, safe);

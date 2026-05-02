@@ -4,7 +4,7 @@ services:
   db:
     image: mongo:latest
     networks:
-      - app_network
+      - techgear_app_network
     volumes:
       - mongodb_data:/data/db
     deploy:
@@ -24,15 +24,15 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=ap-southeast-1
     networks:
-      - app_network
+      - techgear_app_network
     deploy:
       replicas: 2
       restart_policy:
         condition: on-failure
 
 networks:
-  app_network:
-    driver: overlay
+  techgear_app_network:
+    external: true
 
 volumes:
   mongodb_data:
