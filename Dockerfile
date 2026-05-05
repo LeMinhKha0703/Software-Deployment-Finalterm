@@ -1,5 +1,5 @@
 # Bước 1: Sử dụng Image Node.js bản nhẹ (Alpine) làm nền
-FROM node:10-jessie
+FROM node:18-alpine3.19
 
 # Bước 2: Thiết lập thư mục làm việc trong Container
 WORKDIR /app
