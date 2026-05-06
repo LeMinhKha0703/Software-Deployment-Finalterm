@@ -1,91 +1,120 @@
-# Product API + UI (Express + MongoDB, fallback in-memory)
+# 🛒 TechGear Shop - Production-Grade Deployment Project
 
-> Lưu ý: Dự án này được cung cấp làm nền tảng tham khảo cho sinh viên thực hiện bài presentation giữa kỳ trong môn 502094 - Software Deployment, Operations And Maintenance (biên soạn: ThS. Mai Văn Mạnh). Sinh viên không bắt buộc phải sử dụng đúng dự án này — có thể tự chọn hoặc xây dựng một project tương đương (hoặc phức tạp hơn), sử dụng ngôn ngữ hoặc framework khác nếu muốn.
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D%2018.0.0-brightgreen)](https://nodejs.org/)
+[![Framework](https://img.shields.io/badge/framework-Express.js-blue)](https://expressjs.com/)
+[![Database](https://img.shields.io/badge/database-MongoDB-green)](https://www.mongodb.com/)
+[![Infrastructure](https://img.shields.io/badge/infrastructure-AWS%20EC2-orange)](https://aws.amazon.com/)
+[![Orchestration](https://img.shields.io/badge/orchestration-Docker%20Swarm-blue)](https://docs.docker.com/engine/swarm/)
+[![Security](https://img.shields.io/badge/security-Trivy%20Scan-red)](https://aquasecurity.github.io/trivy/)
 
-Đây là một project mẫu tổ chức theo mô hình MVC (Model — View — Controller) xây dựng bằng Node.js + Express, dùng MongoDB (Mongoose) để lưu trữ dữ liệu sản phẩm. Nếu server không kết nối được tới MongoDB trong lần khởi động (timeout 3s), ứng dụng sẽ tự động chuyển sang dùng một datastore `in-memory` và tiếp tục chạy.
+> **Final Project:** Software Deployment, Operations & Maintenance (Course: 502094)
+> **Instructor:** MSc. Mai Van Manh
+> **Developed by:** 
+> - Doan Thanh Trong (523H0108)
+> - Le Minh Kha (523H0036)
 
-**Tính năng chính**
-- API REST đầy đủ cho quản lý Product: CRUD (GET/POST/PUT/PATCH/DELETE).
-- UI server-side render bằng `EJS` kết hợp `Bootstrap` để quản lý sản phẩm (giao diện ở `/`).
-- Mỗi response JSON kèm theo thông tin `hostname` và `source` (dữ liệu đang lấy từ `mongodb` hay `in-memory`).
-- Hỗ trợ upload ảnh cho sản phẩm: ảnh được lưu trên đĩa trong `public/uploads/` và trường `imageUrl` trong product lưu đường dẫn tương đối (`/uploads/<filename>`).
-- Khi cập nhật hoặc xóa product, file ảnh cũ (nằm trong `/uploads/`) sẽ bị xóa khỏi đĩa.
-- Khi khởi động và nếu kết nối MongoDB thành công và collection rỗng, ứng dụng sẽ tự seed 10 sản phẩm Apple mẫu vào MongoDB.
+---
 
-**Cấu trúc chính**
-- `main.js` — entrypoint: kết nối MongoDB (timeout 3s), fallback in-memory, khởi chạy Express.
-- `models/product.js` — Mongoose schema (`name`, `price`, `color`, `description`, `imageUrl`).
-- `services/dataSource.js` — lớp trừu tượng giữa MongoDB và in-memory (seed, CRUD, xóa file khi cần).
-- `controllers/` — controller xử lý logic request/response.
-- `routes/` — route cho API (`/products`) và UI (`/`).
-- `views/` — `EJS` templates cho UI.
-- `public/` — tệp tĩnh: CSS, JS, `uploads/` (ảnh được lưu ở đây).
+## 🌟 Project Overview
+**TechGear Shop** is a high-performance product management application built with a **Model-View-Controller (MVC)** architecture. This project serves as a comprehensive demonstration of professional deployment strategies, including automated cloud infrastructure, container orchestration, DevSecOps pipelines, and real-time system monitoring.
 
-**Yêu cầu & cấu hình**
-- Node.js 16+ (hoặc phiên bản tương thích) và `npm`.
-- File môi trường `.env` (đã có file mẫu trong repo):
+### 🛡️ Core Technical Features
+*   **Intelligent High Availability:** Features a smart fallback mechanism. If the MongoDB connection fails (3s timeout), the system automatically transitions to an `in-memory datastore` to ensure zero service disruption.
+*   **Production-Ready CRUD API:** A robust RESTful API for full product lifecycle management.
+*   **Server-Side Rendering (SSR):** Optimized UI built with `EJS` and `Bootstrap 5` for an intuitive administrative experience.
+*   **Automated Media Management:** Built-in support for image uploads with automated physical file cleanup upon product deletion or updates.
+*   **Smart Database Seeding:** Automatically seeds the database with a curated list of Apple products upon the first successful connection to a fresh MongoDB instance.
 
-```text
+---
+
+## 🏗️ System Architecture
+
+**1. Client Access:** 
+Users access the application securely via HTTPS. All incoming traffic is intercepted and routed by the **Nginx Proxy Manager**.
+
+**2. Application & Data Layer (AWS Production):**
+*   **Load Balancing:** The Nginx proxy distributes requests across multiple **Express.js Replicas** operating within the Docker Swarm cluster.
+*   **Database:** The core application queries a **MongoDB** database for persistent product data.
+*   **Fault Tolerance:** An **In-Memory Store** serves as an automatic fallback mechanism to keep the system operational if the database connection drops.
+*   **Media Persistence:** Uploaded files and media are persisted to an **AWS S3 Bucket** (or persistent attached volumes).
+
+**3. Observability Stack:**
+*   **Metrics Collection:** Application and node-level metrics are continuously scraped and aggregated by **Prometheus**.
+*   **Visualization:** **Grafana** connects to Prometheus to provide a real-time, visual dashboard for system health and performance monitoring.
+
+---
+
+## 🛠️ Technology Stack
+| Layer | Technologies |
+| :--- | :--- |
+| **Backend** | Node.js (Express), Mongoose, Multer |
+| **Frontend** | EJS Templates, Bootstrap 5 |
+| **Database** | MongoDB (NoSQL) & In-memory Fallback |
+| **Infrastructure** | AWS (EC2, S3, Security Groups), Terraform, Ansible |
+| **Containerization** | Docker, Docker Swarm (Multi-node Tier 4) |
+| **DevSecOps** | GitHub Actions, Trivy Vulnerability Scan, Docker Hub |
+| **Monitoring** | Prometheus, Grafana, Node Exporter |
+
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+*   Node.js 18.x or higher
+*   Docker Engine & Docker Compose (for local containerized testing)
+*   AWS Account (for cloud deployment)
+
+### 2. Environment Configuration
+Create a `.env` file in the root directory:
+```env
 PORT=3000
-MONGO_URI=mongodb://localhost:27017/products_db
+MONGO_URI=mongodb://<your_db_host>:27017/techgear_db
+NODE_ENV=production
 ```
 
-Nếu bạn muốn kết nối MongoDB có username/password, chỉnh `MONGO_URI` tương ứng.
-
-**Cài đặt & chạy trên máy local**
-1. Cài dependencies:
-
+### 3. Installation & Local Execution
 ```bash
-cd /Users/mvmanh/Desktop/api
+# Install dependencies
 npm install
-```
 
-2. Khởi động server:
-
-```bash
-# Chạy production (node)
+# Start in Production mode
 npm start
 
-# Hoặc chế độ phát triển với nodemon
+# Start in Development mode (with nodemon)
 npm run dev
 ```
+Access the application at: `http://localhost:3000`
 
-3. Mở trình duyệt vào: `http://localhost:3000/` — trang UI sẽ hiển thị danh sách sản phẩm và cung cấp các thao tác Add / Edit / Delete.
+---
 
-**API (JSON) — endpoints chính**
-- `GET /products` — lấy danh sách sản phẩm.
-- `GET /products/:id` — lấy chi tiết 1 sản phẩm.
-- `POST /products` — tạo mới. Được hỗ trợ multipart form-data để upload ảnh (field file: `imageFile`) và các field text: `name`, `price`, `color`, `description`.
-- `PUT /products/:id` — thay thế toàn bộ product. Hỗ trợ upload file theo multipart.
-- `PATCH /products/:id` — cập nhật một phần. Hỗ trợ upload file theo multipart.
-- `DELETE /products/:id` — xóa product và xóa file ảnh tương ứng nếu ảnh được lưu trong `/uploads/`.
+## 🔌 API Documentation
 
-Ví dụ tạo product (curl, upload file):
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/products` | Retrieve all products (JSON) |
+| `GET` | `/products/:id` | Get specific product details |
+| `POST` | `/products` | Create product (Supports Multipart/Form-data) |
+| `PUT` | `/products/:id` | Full product replacement |
+| `PATCH` | `/products/:id` | Partial product update |
+| `DELETE` | `/products/:id` | Delete product and associated image |
 
+**Sample cURL Request:**
 ```bash
-curl -X POST -F "name=My Device" -F "price=199" -F "color=black" -F "description=Note" -F "imageFile=@/path/to/photo.jpg" http://localhost:3000/products
+curl -X POST -F "name=MacBook M3" -F "price=1299" -F "imageFile=@laptop.jpg" http://localhost:3000/products
 ```
 
-Lưu ý: UI trên trang chủ sử dụng fetch + FormData để gửi file, nên bạn không cần thay đổi gì nếu dùng giao diện.
+---
 
-**Behavior quan trọng**
-- Khi khởi động, `main.js` cố gắng connect tới MongoDB với `serverSelectionTimeoutMS: 3000`. Nếu thất bại, ứng dụng sẽ in log và dùng `in-memory` suốt vòng đời process.
-- Khi MongoDB thành công và collection `products` rỗng, repo sẽ seed 10 sản phẩm Apple mẫu (có `name`, `price`, `color`, `description`, `imageUrl` mặc định rỗng).
-- Ảnh được lưu trên đĩa tại `public/uploads/` và được phục vụ tĩnh bởi Express; đường dẫn lưu trong DB là tương đối (`/uploads/<filename>`).
-- Khi cập nhật ảnh mới cho một product, file cũ nếu có và nằm trong `/uploads/` sẽ bị xóa.
+## 📈 Monitoring & Reliability
+The system implements a full **Prometheus & Grafana** stack to ensure operational excellence:
+*   **Real-time Observability:** Monitoring CPU, Memory, Network Traffic, and Disk I/O across the Swarm cluster.
+*   **Self-Healing:** Docker Swarm automatically restarts containers in the event of application failure.
+*   **Security Fail Gates:** The CI/CD pipeline automatically blocks deployments if **Critical** or **High** vulnerabilities are detected by the Trivy security scanner.
 
-**Giới hạn & khuyến nghị**
-- Hiện tại server cho phép upload file và lưu trực tiếp trên đĩa — phù hợp cho demo và môi trường dev, nhưng không tối ưu cho production (về backup, scale và băng thông). Với môi trường production, nên dùng lưu trữ cloud (S3/Cloudinary) và chỉ lưu URL trong DB.
-- Thêm giới hạn kích thước file và kiểm tra MIME type nếu bạn muốn an toàn hơn. Tôi có thể thêm cấu hình `multer` để giới hạn kích thước (ví dụ 2MB) và whitelist `image/*`.
+---
 
-**Một số lệnh tiện ích**
-- Cài thêm `nodemon` global (nếu muốn): `npm i -g nodemon`.
-- Xem log server (stdout) để biết liệu app đang dùng `mongodb` hay `in-memory`.
+## 📄 License
+This project is developed for educational purposes at **Ton Duc Thang University (TDTU)**.
 
-**Tôi có thể giúp tiếp**
-- Thêm giới hạn kích thước file và kiểm tra MIME type.
-- Hoặc chuyển lưu trữ ảnh sang S3/Cloudinary (cần credentials).
-- Thêm trang chi tiết sản phẩm hoặc phân trang cho danh sách.
-
-Nếu bạn muốn tôi cập nhật README để ghi rõ cách migrate dữ liệu, cách reset uploads hoặc ví dụ cụ thể hơn, cho biết yêu cầu cụ thể và tôi sẽ bổ sung.
-
+---
+© 2026 - Team TechGear (Trong & Kha)
